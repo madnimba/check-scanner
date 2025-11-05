@@ -28,11 +28,12 @@ interface ScanResult {
 
 interface ResultScreenProps {
   result: ScanResult
+  imageUrl?: string | null
   onBackToHome: () => void
   onEditFields: (fields: ScanResult["fields"]) => void
 }
 
-export function ResultScreen({ result, onBackToHome, onEditFields }: ResultScreenProps) {
+export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: ResultScreenProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   const fieldValidation = useMemo(() => validateAllFields(result.fields), [result.fields])
@@ -100,6 +101,13 @@ export function ResultScreen({ result, onBackToHome, onEditFields }: ResultScree
           <h1 className="text-3xl font-bold text-foreground mb-2">Scan Complete</h1>
           <p className="text-muted-foreground">Review the extracted check details</p>
         </div>
+
+        {/* Scanned Check Image Preview */}
+        {imageUrl && (
+          <Card className="p-0 overflow-hidden border border-gray-200">
+            <img src={imageUrl || "/placeholder.svg"} alt="Scanned check" className="w-full h-40 object-cover" />
+          </Card>
+        )}
 
         {/* Verdict Card */}
         <Card className="p-6 bg-gradient-to-br from-blue-50 to-white border-blue-200">

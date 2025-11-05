@@ -29,8 +29,11 @@ interface ScanResult {
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>("home")
   const [scanResult, setScanResult] = useState<ScanResult | null>(null)
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
 
   const handleStartScan = (file: File) => {
+    const url = URL.createObjectURL(file)
+    setImageUrl(url)
     setCurrentScreen("processing")
     uploadAndScan(file)
   }
@@ -50,6 +53,7 @@ export default function Home() {
       if (data.error) {
         alert(`Error: ${data.error}`)
         setCurrentScreen("home")
+        setImageUrl(null)
         return
       }
 
@@ -59,21 +63,27 @@ export default function Home() {
       console.error("Scan error:", error)
       alert("Failed to scan check. Please try again.")
       setCurrentScreen("home")
+      setImageUrl(null)
     }
   }
 
   const handleBackToHome = () => {
     setCurrentScreen("home")
     setScanResult(null)
+    if (imageUrl) {
+      URL.revokeObjectURL(imageUrl)
+    }
+    setImageUrl(null)
   }
 
   return (
     <main className="min-h-screen bg-background">
       {currentScreen === "home" && <HomePage onStartScan={handleStartScan} />}
-      {currentScreen === "processing" && <ProcessingScreen />}
+      {currentScreen === "processing" && <ProcessingScreen imageUrl={imageUrl} />}
       {currentScreen === "result" && scanResult && (
         <ResultScreen
           result={scanResult}
+          imageUrl={imageUrl}
           onBackToHome={handleBackToHome}
           onEditFields={(editedFields) => {
             if (scanResult) {

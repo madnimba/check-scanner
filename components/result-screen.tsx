@@ -115,7 +115,7 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
             {getVerdictBadge()}
             <div className="text-center">
               <p className="text-sm text-muted-foreground mb-2">Signature Match Score</p>
-              <p className="text-4xl font-bold text-foreground">{(result.signatureMatch.score).toFixed(1)}%</p>
+              <p className="text-4xl font-bold text-foreground">{(result.signatureMatch.score * 100).toFixed(1)}%</p>
             </div>
 
             {/* Confidence Bar */}

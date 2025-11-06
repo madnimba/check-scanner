@@ -19,35 +19,48 @@ export function HomePage({ onStartScan }: HomePageProps) {
 
   const handleTakePhoto = async () => {
     try {
-      setCameraError(null)
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
-      })
+      setCameraError(null);
 
-      if (videoRef.current) {
-        // Helpful debug info when diagnosing black frames
-        console.log("[v0] Camera stream tracks:", stream.getVideoTracks().map((t) => t.label))
-
-        // Mute the video element to improve autoplay behavior on some mobile/desktop browsers
-        try {
-          videoRef.current.muted = true
-        } catch (e) {
-          /* ignore */
-        }
-
-        videoRef.current.srcObject = stream
-        // Play the video immediately when stream is available
-        videoRef.current.play().catch((err) => {
-          console.log("[v0] Play error:", err)
+      // Ask for camera (prefer back camera)
+      const stream = await navigator.mediaDevices
+        .getUserMedia({
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
         })
-        setIsCameraOpen(true)
+        .catch(async (err) => {
+          console.warn("[Camera] Environment camera unavailable, using default:", err);
+          return navigator.mediaDevices.getUserMedia({ video: true });
+        });
+
+      if (!stream) throw new Error("Camera stream not available");
+
+      // STEP 1️⃣ — open the modal FIRST so the <video> exists
+      setIsCameraOpen(true);
+
+      // STEP 2️⃣ — small delay to let modal render, then attach the stream
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.setAttribute("playsinline", "true");
+          videoRef.current.setAttribute("autoplay", "true");
+          videoRef.current.muted = true;
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch((err) => console.log("[Camera] Play error:", err));
+          console.log("[Camera] Stream attached successfully");
+        }
+      }, 300); // 300ms gives React time to render modal
+
+    } catch (err: any) {
+      console.error("[Camera] Access error:", err);
+      if (err.name === "NotAllowedError") {
+        setCameraError("Camera access denied. Please allow camera permission and retry.");
+      } else if (window.location.protocol !== "https:") {
+        setCameraError("Camera access requires HTTPS or localhost.");
+      } else {
+        setCameraError("Unable to access camera. Please check browser settings.");
       }
-    } catch (error) {
-      setCameraError("Unable to access camera. Please check permissions.")
-      console.log("[v0] Camera error:", error)
     }
-  }
+  };
+
 
   const handleCapturePhoto = async () => {
     if (videoRef.current && canvasRef.current) {
@@ -73,25 +86,27 @@ export function HomePage({ onStartScan }: HomePageProps) {
     }
   }
 
-  const closeCameraAndScan = (file: File) => {
-    // Stop camera stream
+  const stopCamera = () => {
     if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream
-      stream.getTracks().forEach((track) => track.stop())
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
     }
+  };
 
-    setIsCameraOpen(false)
-    onStartScan(file)
-  }
 
   const handleCameraClose = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream
-      stream.getTracks().forEach((track) => track.stop())
-    }
-    setIsCameraOpen(false)
-    setCameraError(null)
-  }
+    stopCamera();
+    setIsCameraOpen(false);
+    setCameraError(null);
+  };
+
+  const closeCameraAndScan = (file: File) => {
+    stopCamera();
+    setIsCameraOpen(false);
+    onStartScan(file);
+  };
+
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

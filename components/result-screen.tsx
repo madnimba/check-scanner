@@ -115,53 +115,15 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
             {getVerdictBadge()}
             <div className="text-center">
               <p className="text-sm text-muted-foreground mb-2">Signature Match Score</p>
-              <p className="text-4xl font-bold text-foreground">{(result.signatureMatch.score * 100).toFixed(1)}%</p>
+              <p className="text-4xl font-bold text-foreground">{(result.signatureMatch.score).toFixed(1)}%</p>
             </div>
 
             {/* Confidence Bar */}
-            <div className="w-full space-y-2">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Confidence</span>
-                <span>{(result.ocrConfidence * 100).toFixed(1)}%</span>
-              </div>
-              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${getConfidenceColor(result.ocrConfidence)} transition-all`}
-                  style={{ width: `${result.ocrConfidence * 100}%` }}
-                />
-              </div>
-            </div>
+            
           </div>
         </Card>
 
-        {(hasValidationErrors || hasValidationWarnings) && (
-          <Card
-            className={`p-4 border-l-4 ${
-              hasValidationErrors ? "bg-red-50 border-l-red-500" : "bg-amber-50 border-l-amber-500"
-            }`}
-          >
-            <div className="flex gap-3">
-              {hasValidationErrors ? (
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              ) : (
-                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              )}
-              <div className="text-sm">
-                <p className={`font-semibold ${hasValidationErrors ? "text-red-900" : "text-amber-900"}`}>
-                  {hasValidationErrors ? "Validation Errors" : "Validation Warnings"}
-                </p>
-                <ul className={`mt-1 space-y-1 text-xs ${hasValidationErrors ? "text-red-700" : "text-amber-700"}`}>
-                  {Object.entries(fieldValidation).map(
-                    ([field, validation]) =>
-                      (hasValidationErrors ? validation.errors : validation.warnings).length > 0 && (
-                        <li key={field}>• {field.replace(/([A-Z])/g, " $1").trim()}</li>
-                      ),
-                  )}
-                </ul>
-              </div>
-            </div>
-          </Card>
-        )}
+        
 
         {/* Extracted Fields */}
         <Card className="p-6 space-y-4">
@@ -177,43 +139,33 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
             <FieldRow
               label="Account Number"
               value={result.fields.accountNumber}
-              validation={fieldValidation.accountNumber}
+              //validation={fieldValidation.accountNumber}
             />
             <FieldRow
               label="Account Holder"
               value={result.fields.accountHolderName}
-              validation={fieldValidation.accountHolderName}
+              //validation={fieldValidation.accountHolderName}
             />
-            <FieldRow label="Check Date" value={result.fields.checkDate} validation={fieldValidation.checkDate} />
+            <FieldRow label="Check Date" value={result.fields.checkDate} 
+              //validation={fieldValidation.checkDate} 
+            />
             <FieldRow
               label="Page Number"
               value={result.fields.checkPageNumber}
-              validation={fieldValidation.checkPageNumber}
+              //validation={fieldValidation.checkPageNumber}
             />
-            <FieldRow label="Amount (Taka)" value={result.fields.amountTaka} validation={fieldValidation.amountTaka} />
+            <FieldRow label="Amount (Taka)" value={result.fields.amountTaka} 
+              //validation={fieldValidation.amountTaka} 
+            />
             <FieldRow
               label="Check Carrier"
               value={result.fields.checkCarrierName}
-              validation={fieldValidation.checkCarrierName}
+              //validation={fieldValidation.checkCarrierName}
             />
           </div>
         </Card>
 
-        {/* Signature Image */}
-        <Card className="p-4 space-y-3">
-          <p className="text-sm font-semibold text-foreground">Extracted Signature</p>
-          {result.signatureImageUrl && (
-            <img
-              src={result.signatureImageUrl || "/placeholder.svg"}
-              alt="Extracted Signature"
-              className="w-full h-32 bg-gray-100 rounded-lg border border-gray-200 object-contain"
-            />
-          )}
-          <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-            <div>ORB Match: {(result.signatureMatch.orb * 100).toFixed(1)}%</div>
-            <div>SSIM: {(result.signatureMatch.ssim * 100).toFixed(1)}%</div>
-          </div>
-        </Card>
+       
 
         {/* Action Buttons */}
         <div className="space-y-3 pt-4">

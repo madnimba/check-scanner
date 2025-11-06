@@ -26,6 +26,16 @@ export function HomePage({ onStartScan }: HomePageProps) {
       })
 
       if (videoRef.current) {
+        // Helpful debug info when diagnosing black frames
+        console.log("[v0] Camera stream tracks:", stream.getVideoTracks().map((t) => t.label))
+
+        // Mute the video element to improve autoplay behavior on some mobile/desktop browsers
+        try {
+          videoRef.current.muted = true
+        } catch (e) {
+          /* ignore */
+        }
+
         videoRef.current.srcObject = stream
         // Play the video immediately when stream is available
         videoRef.current.play().catch((err) => {
@@ -98,15 +108,17 @@ export function HomePage({ onStartScan }: HomePageProps) {
             ref={videoRef}
             autoPlay
             playsInline
+            muted
             className="w-full h-full object-cover"
             onLoadedMetadata={() => {
               if (videoRef.current) {
-                videoRef.current.play()
+                // ensure play after metadata is loaded
+                videoRef.current.play().catch((err) => console.log("[v0] Play error on loadedmetadata:", err))
               }
             }}
           />
 
-          <canvas ref={canvasRef} className="hidden" crossOrigin="anonymous" />
+          <canvas ref={canvasRef} className="hidden" />
 
           <div className="absolute inset-0 pointer-events-none flex flex-col">
             <div className="flex-1 bg-black/20" />

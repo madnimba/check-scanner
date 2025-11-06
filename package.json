@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "set NODE_OPTIONS=--openssl-legacy-provider && next dev",
     "lint": "eslint .",
     "start": "next start"
   },
@@ -44,6 +44,7 @@
     "cmdk": "1.0.4",
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.5.1",
+    "google-auth-library": "^10.5.0",
     "input-otp": "1.4.1",
     "jimp": "^1.6.0",
     "lucide-react": "^0.454.0",

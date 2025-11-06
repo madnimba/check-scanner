@@ -135,15 +135,12 @@ export function HomePage({ onStartScan }: HomePageProps) {
 
           <canvas ref={canvasRef} className="hidden" />
 
-          <div className="absolute inset-0 pointer-events-none flex flex-col">
-            <div className="flex-1 bg-black/20" />
-            <div className="flex-1 flex items-center justify-center">
-              <div className="border-2 border-white/50 w-80 h-96 rounded-xl" />
-            </div>
-            <div className="flex-1 bg-black/20" />
+          {/* Keep only a subtle framing rectangle to avoid darkening the live preview */}
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+            <div className="border-2 border-white/60 w-80 h-96 rounded-xl shadow-lg" />
           </div>
 
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent pt-8 pb-8 px-4 flex justify-center gap-6">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/20 to-transparent pt-8 pb-8 px-4 flex justify-center gap-6">
             <Button
               size="lg"
               variant="outline"

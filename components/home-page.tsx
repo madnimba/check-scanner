@@ -17,74 +17,109 @@ export function HomePage({ onStartScan }: HomePageProps) {
   const [isCameraOpen, setIsCameraOpen] = useState(false)
   const [cameraError, setCameraError] = useState<string | null>(null)
 
-  const handleTakePhoto = async () => {
+const handleTakePhoto = async () => {
+  try {
+    setCameraError(null);
+
+    // Prefer back camera with HD+ resolution
+    let constraints: MediaStreamConstraints = {
+      video: {
+        facingMode: { exact: "environment" },
+        width: { ideal: 1920, min: 1280 },
+        height: { ideal: 1080, min: 720 },
+        frameRate: { ideal: 30, max: 60 },
+      },
+      audio: false,
+    };
+
+    let stream: MediaStream | null = null;
+
     try {
-      setCameraError(null);
-
-      // Ask for camera (prefer back camera)
-      const stream = await navigator.mediaDevices
-        .getUserMedia({
-          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: false,
-        })
-        .catch(async (err) => {
-          console.warn("[Camera] Environment camera unavailable, using default:", err);
-          return navigator.mediaDevices.getUserMedia({ video: true });
-        });
-
-      if (!stream) throw new Error("Camera stream not available");
-
-      // STEP 1️⃣ — open the modal FIRST so the <video> exists
-      setIsCameraOpen(true);
-
-      // STEP 2️⃣ — small delay to let modal render, then attach the stream
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.setAttribute("playsinline", "true");
-          videoRef.current.setAttribute("autoplay", "true");
-          videoRef.current.muted = true;
-          videoRef.current.srcObject = stream;
-          videoRef.current.play().catch((err) => console.log("[Camera] Play error:", err));
-          console.log("[Camera] Stream attached successfully");
-        }
-      }, 300); // 300ms gives React time to render modal
-
-    } catch (err: any) {
-      console.error("[Camera] Access error:", err);
-      if (err.name === "NotAllowedError") {
-        setCameraError("Camera access denied. Please allow camera permission and retry.");
-      } else if (window.location.protocol !== "https:") {
-        setCameraError("Camera access requires HTTPS or localhost.");
-      } else {
-        setCameraError("Unable to access camera. Please check browser settings.");
-      }
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (err) {
+      console.warn("[Camera] Environment/back camera unavailable. Using default front camera:", err);
+      // fallback to any available camera
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      });
     }
-  };
+
+    if (!stream) throw new Error("Camera stream not available");
+
+    // ✅ Debug actual resolution
+    const track = stream.getVideoTracks()[0];
+    const settings = track.getSettings();
+    console.table({
+      label: track.label,
+      resolution: `${settings.width}x${settings.height}`,
+      frameRate: settings.frameRate,
+      facingMode: settings.facingMode,
+    });
+
+    // STEP 1️⃣ — Open modal before attaching stream
+    setIsCameraOpen(true);
+
+    // STEP 2️⃣ — Wait for modal render then attach stream
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.setAttribute("playsinline", "true");
+        videoRef.current.setAttribute("autoplay", "true");
+        videoRef.current.muted = true;
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch((err) => console.log("[Camera] Play error:", err));
+        console.log("[Camera] Stream attached successfully with", settings.width, "x", settings.height);
+      }
+    }, 300);
+
+  } catch (err: any) {
+    console.error("[Camera] Access error:", err);
+    if (err.name === "NotAllowedError") {
+      setCameraError("Camera access denied. Please allow camera permission and retry.");
+    } else if (window.location.protocol !== "https:") {
+      setCameraError("Camera access requires HTTPS or localhost.");
+    } else {
+      setCameraError("Unable to access camera. Please check browser settings.");
+    }
+  }
+};
 
 
   const handleCapturePhoto = async () => {
-    if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext("2d")
-      canvasRef.current.width = videoRef.current.videoWidth
-      canvasRef.current.height = videoRef.current.videoHeight
+    if (!videoRef.current) return;
 
-      if (context) {
-        context.drawImage(videoRef.current, 0, 0)
-
-        // Convert canvas to blob and create File
-        canvasRef.current.toBlob(
-          (blob) => {
-            if (blob) {
-              const file = new File([blob], "check-photo.jpg", { type: "image/jpeg" })
-              closeCameraAndScan(file)
-            }
-          },
-          "image/jpeg",
-          0.95,
-        )
+    const stream = videoRef.current.srcObject as MediaStream | null;
+    const track = stream?.getVideoTracks?.()[0];
+    if (track && "ImageCapture" in window) {
+      try {
+        // @ts-ignore
+        const imageCapture = new ImageCapture(track);
+        const blob = await imageCapture.takePhoto(); // often higher than preview res
+        const file = new File([blob], "check-photo.jpg", { type: blob.type || "image/jpeg" });
+        closeCameraAndScan(file);
+        return;
+      } catch (e) {
+        console.warn("[Camera] takePhoto fell back to canvas:", e);
       }
     }
-  }
+
+    // Fallback to canvas at video’s native resolution
+    if (canvasRef.current && videoRef.current) {
+      const ctx = canvasRef.current.getContext("2d");
+      const w = videoRef.current.videoWidth;
+      const h = videoRef.current.videoHeight;
+      canvasRef.current.width = w;
+      canvasRef.current.height = h;
+      ctx?.drawImage(videoRef.current, 0, 0, w, h);
+      canvasRef.current.toBlob((blob) => {
+        if (blob) {
+          const file = new File([blob], "check-photo.jpg", { type: "image/jpeg" });
+          closeCameraAndScan(file);
+        }
+      }, "image/jpeg", 0.95);
+    }
+  };
+
 
   const stopCamera = () => {
     if (videoRef.current && videoRef.current.srcObject) {
@@ -124,7 +159,7 @@ export function HomePage({ onStartScan }: HomePageProps) {
             autoPlay
             playsInline
             muted
-            className="w-full h-full object-cover"
+            className="max-w-full max-h-full object-contain bg-black"
             onLoadedMetadata={() => {
               if (videoRef.current) {
                 // ensure play after metadata is loaded

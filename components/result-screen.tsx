@@ -15,6 +15,7 @@ interface ScanResult {
     checkPageNumber: string
     amountTaka: string
     checkCarrierName: string
+    payeeName: string
   }
   signatureImageUrl: string
   signatureMatch: {
@@ -159,7 +160,7 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
             />
             <FieldRow
               label="Check Carrier"
-              value={result.fields.checkCarrierName}
+              value={result.fields.payeeName}
               //validation={fieldValidation.checkCarrierName}
             />
           </div>

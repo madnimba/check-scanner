@@ -213,6 +213,11 @@ const handleTakePhoto = async () => {
         <div className="space-y-3">
           <h1 className="text-4xl font-bold text-foreground">ScanSwift</h1>
           <p className="text-lg text-muted-foreground">Verify bank checks with AI-powered accuracy</p>
+
+          {/* Powered by badge */}
+          <div className="mt-2 inline-block bg-gradient-to-r from-yellow-100 via-yellow-50 to-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-semibold shadow-sm">
+            Powered by - Arctic Wolves
+          </div>
         </div>
 
         {/* Illustration Placeholder */}

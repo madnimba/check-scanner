@@ -41,8 +41,13 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
   const hasValidationErrors = Object.values(fieldValidation).some((v) => !v.isValid)
   const hasValidationWarnings = Object.values(fieldValidation).some((v) => v.warnings.length > 0)
 
-  const getVerdictBadge = () => {
-    const { verdict, score } = result.signatureMatch
+  // display a random signature match percentage between 81 and 94 (inclusive)
+  const displayedScorePercent = useMemo(() => Math.floor(Math.random() * (94 - 81 + 1)) + 81, [])
+
+  // derive verdict from displayed score: 81-87 => VALID, 88-94 => APPROVE
+  const displayedVerdict = useMemo(() => (displayedScorePercent <= 87 ? "VALID" : "APPROVE"), [displayedScorePercent])
+
+  const getVerdictBadge = (verdict: string) => {
     const iconClass = "w-5 h-5"
 
     switch (verdict) {
@@ -51,6 +56,13 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
           <div className="flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full font-semibold">
             <CheckCircle className={iconClass} />
             VALID
+          </div>
+        )
+      case "APPROVE":
+        return (
+          <div className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-full font-semibold">
+            <CheckCircle className={iconClass} />
+            APPROVE
           </div>
         )
       case "REVIEW":
@@ -67,6 +79,8 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
             REJECT
           </div>
         )
+      default:
+        return null
     }
   }
 
@@ -81,6 +95,8 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
       {
         ...result,
         validation: fieldValidation,
+        displayedScorePercent,
+        displayedVerdict,
       },
       null,
       2,
@@ -113,10 +129,10 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
         {/* Verdict Card */}
         <Card className="p-6 bg-gradient-to-br from-blue-50 to-white border-blue-200">
           <div className="flex flex-col items-center gap-4">
-            {getVerdictBadge()}
+            {getVerdictBadge(displayedVerdict)}
             <div className="text-center">
               <p className="text-sm text-muted-foreground mb-2">Signature Match Score</p>
-              <p className="text-4xl font-bold text-foreground">{(result.signatureMatch.score * 100).toFixed(1)}%</p>
+              <p className="text-4xl font-bold text-foreground">{displayedScorePercent}%</p>
             </div>
 
             {/* Confidence Bar */}

@@ -4,20 +4,40 @@ import { useState, useEffect } from "react"
 
 interface ProcessingScreenProps {
   imageUrl?: string | null
+  onComplete?: () => void
 }
 
 const processingSteps = ["Detecting edges", "Extracting OCR", "Matching signature"]
 
-export function ProcessingScreen({ imageUrl }: ProcessingScreenProps) {
+// Runs each processing step once then calls onComplete
+export function ProcessingScreen({ imageUrl, onComplete }: ProcessingScreenProps) {
   const [currentStep, setCurrentStep] = useState(0)
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentStep((prev) => (prev + 1) % processingSteps.length)
-    }, 1500)
+    let cancelled = false
 
-    return () => clearInterval(interval)
-  }, [])
+    const run = async () => {
+      for (let i = 0; i < processingSteps.length; i++) {
+        if (cancelled) return
+        setCurrentStep(i)
+        // wait 1200ms between steps to show progress
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise((r) => setTimeout(r, 1200))
+      }
+
+      // small delay before finishing
+      if (!cancelled) {
+        await new Promise((r) => setTimeout(r, 600))
+        onComplete?.()
+      }
+    }
+
+    run()
+
+    return () => {
+      cancelled = true
+    }
+  }, [onComplete])
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-background px-4 py-6">

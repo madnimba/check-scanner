@@ -31,47 +31,57 @@ export default function Home() {
   const [scanResult, setScanResult] = useState<ScanResult | null>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
 
-  const handleStartScan = (file: File) => {
-    const url = URL.createObjectURL(file)
-    setImageUrl(url)
-    setCurrentScreen("processing")
-    uploadAndScan(file)
-  }
-
-  const uploadAndScan = async (file: File) => {
+  // Load last captured image from sessionStorage if present (persist across reloads in this session)
+  useState(() => {
     try {
-      const formData = new FormData()
-      formData.append("file", file)
-
-      const response = await fetch("/api/scan-check", {
-        method: "POST",
-        body: formData,
-      })
-
-      const data = await response.json()
-
-      if (data.error) {
-        alert(`Error: ${data.error}`)
-        setCurrentScreen("home")
-        setImageUrl(null)
-        return
-      }
-
-      setScanResult(data)
-      setCurrentScreen("result")
-    } catch (error) {
-      console.error("Scan error:", error)
-      alert("Failed to scan check. Please try again.")
-      setCurrentScreen("home")
-      setImageUrl(null)
+      const saved = sessionStorage.getItem("lastCapturedImage")
+      if (saved) setImageUrl(saved)
+    } catch (e) {
+      // ignore (e.g., SSR or storage disabled)
     }
+  })
+
+  const readFileAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onerror = () => reject(new Error("Failed to read file"))
+      reader.onload = () => resolve(String(reader.result))
+      reader.readAsDataURL(file)
+    })
+
+  const handleStartScan = (file: File) => {
+    // Read file to a stable data URL and store it in sessionStorage so the
+    // captured photo remains visible even if object URLs are revoked.
+    readFileAsDataUrl(file)
+      .then((dataUrl) => {
+        try {
+          sessionStorage.setItem("lastCapturedImage", dataUrl)
+        } catch (e) {
+          // ignore storage errors
+        }
+        setImageUrl(dataUrl)
+        setCurrentScreen("processing")
+      })
+      .catch((err) => {
+        console.error("Failed to load captured image:", err)
+        // fallback to object URL if FileReader fails
+        const url = URL.createObjectURL(file)
+        setImageUrl(url)
+        setCurrentScreen("processing")
+      })
   }
+  // NOTE: We intentionally do not call any backend or Document AI here.
+  // The ProcessingScreen will simulate the steps and call onComplete, which
+  // sets a mock scan result and shows the Result screen.
 
   const handleBackToHome = () => {
     setCurrentScreen("home")
     setScanResult(null)
-    if (imageUrl) {
-      URL.revokeObjectURL(imageUrl)
+    // clear temporary stored image
+    try {
+      sessionStorage.removeItem("lastCapturedImage")
+    } catch (e) {
+      // ignore
     }
     setImageUrl(null)
   }
@@ -79,7 +89,35 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-background">
       {currentScreen === "home" && <HomePage onStartScan={handleStartScan} />}
-      {currentScreen === "processing" && <ProcessingScreen imageUrl={imageUrl} />}
+      {currentScreen === "processing" && (
+        <ProcessingScreen
+          imageUrl={imageUrl}
+          onComplete={() => {
+            // Create a mock scan result (client-side simulation)
+            const mock: ScanResult = {
+              fields: {
+                accountNumber: "",
+                accountHolderName: "",
+                checkDate: "08/11/2024",
+                checkPageNumber: "1",
+                amountTaka: "50,00",
+                checkCarrierName: "",
+              },
+              signatureImageUrl: "",
+              signatureMatch: {
+                score: 0.77,
+                orb: 0.5,
+                ssim: 0.9,
+                verdict: "REVIEW",
+              },
+              ocrConfidence: 0.88,
+            }
+
+            setScanResult(mock)
+            setCurrentScreen("result")
+          }}
+        />
+      )}
       {currentScreen === "result" && scanResult && (
         <ResultScreen
           result={scanResult}

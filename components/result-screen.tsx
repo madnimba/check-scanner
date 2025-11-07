@@ -15,7 +15,7 @@ interface ScanResult {
     checkPageNumber: string
     amountTaka: string
     checkCarrierName: string
-    payeeName: string
+    payeeName?: string
   }
   signatureImageUrl: string
   signatureMatch: {
@@ -157,7 +157,7 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
                 />
                 <div className="text-red-600 text-sm font-semibold">⚠️</div>
               </div>
-              <div className="text-red-600 text-sm mt-2">Date-Wrong Date! Doesn't Match with Today's Date</div>
+              <div className="text-red-600 text-sm mt-2">Warning: Doesn't Match with Today's Date</div>
             </div>
 
             <div className="py-2">
@@ -173,7 +173,7 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
               <label className="text-sm text-muted-foreground">Amount</label>
               <input
                 className="mt-1 w-full border border-gray-200 rounded px-3 py-2 text-foreground"
-                defaultValue="50,00"
+                defaultValue="50,000"
                 aria-label="Amount"
               />
             </div>

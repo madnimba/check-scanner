@@ -214,10 +214,10 @@ const handleTakePhoto = async () => {
           <h1 className="text-4xl font-bold text-foreground">ScanSwift</h1>
           <p className="text-lg text-muted-foreground">Verify bank checks with AI-powered accuracy</p>
 
-          {/* Powered by badge */}
-          <div className="mt-2 inline-block bg-gradient-to-r from-yellow-100 via-yellow-50 to-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-semibold shadow-sm">
-            Powered by - Arctic Wolves
-          </div>
+          <p className="mt-2">
+            <span className="bg-blue-100 text-blue-800 px-1">Powered by - Arctic Wolves</span>
+          </p>
+          
         </div>
 
         {/* Illustration Placeholder */}

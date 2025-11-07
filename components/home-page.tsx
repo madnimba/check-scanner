@@ -21,65 +21,70 @@ const handleTakePhoto = async () => {
   try {
     setCameraError(null);
 
-    // Prefer back camera with HD+ resolution
-    let constraints: MediaStreamConstraints = {
+    // 1️⃣ Ask permission first so enumerateDevices can see all cameras
+    await navigator.mediaDevices.getUserMedia({ video: true });
+
+    // 2️⃣ Get all cameras
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter((d) => d.kind === "videoinput");
+
+    console.table(videoDevices.map((d) => ({ label: d.label, id: d.deviceId })));
+
+    // 3️⃣ Try to find the main (1×) back camera — avoid wide / macro / front
+    let preferredDevice = videoDevices.find((d) =>
+      /back|rear|environment/i.test(d.label)
+    );
+
+    // If multiple back cameras exist, choose the one that includes "0" or "main"
+    if (preferredDevice) {
+      const exactMain = videoDevices.find((d) =>
+        /back|rear|environment/i.test(d.label) && /(0|main|default)/i.test(d.label)
+      );
+      if (exactMain) preferredDevice = exactMain;
+    }
+
+    // fallback: first device if no match
+    if (!preferredDevice) preferredDevice = videoDevices[0];
+
+    // 4️⃣ Now open that specific camera ID in full resolution
+    const constraints: MediaStreamConstraints = {
       video: {
-        facingMode: { exact: "environment" },
+        deviceId: { exact: preferredDevice.deviceId },
         width: { ideal: 1920, min: 1280 },
         height: { ideal: 1080, min: 720 },
-        frameRate: { ideal: 30, max: 60 },
+        frameRate: { ideal: 30 },
       },
       audio: false,
     };
 
-    let stream: MediaStream | null = null;
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    if (!stream) throw new Error("Unable to access main camera");
 
-    try {
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
-    } catch (err) {
-      console.warn("[Camera] Environment/back camera unavailable. Using default front camera:", err);
-      // fallback to any available camera
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
-      });
-    }
-
-    if (!stream) throw new Error("Camera stream not available");
-
-    // ✅ Debug actual resolution
     const track = stream.getVideoTracks()[0];
     const settings = track.getSettings();
-    console.table({
-      label: track.label,
-      resolution: `${settings.width}x${settings.height}`,
-      frameRate: settings.frameRate,
-      facingMode: settings.facingMode,
-    });
+    console.log("[Camera] Using:", track.label, settings.width + "x" + settings.height);
 
-    // STEP 1️⃣ — Open modal before attaching stream
+    // 5️⃣ Open modal and attach stream
     setIsCameraOpen(true);
-
-    // STEP 2️⃣ — Wait for modal render then attach stream
     setTimeout(() => {
       if (videoRef.current) {
         videoRef.current.setAttribute("playsinline", "true");
         videoRef.current.setAttribute("autoplay", "true");
         videoRef.current.muted = true;
         videoRef.current.srcObject = stream;
-        videoRef.current.play().catch((err) => console.log("[Camera] Play error:", err));
-        console.log("[Camera] Stream attached successfully with", settings.width, "x", settings.height);
+        videoRef.current
+          .play()
+          .catch((err) => console.log("[Camera] play() error:", err));
       }
     }, 300);
-
   } catch (err: any) {
     console.error("[Camera] Access error:", err);
     if (err.name === "NotAllowedError") {
-      setCameraError("Camera access denied. Please allow camera permission and retry.");
+      setCameraError("Camera access denied. Please allow camera permission.");
     } else if (window.location.protocol !== "https:") {
       setCameraError("Camera access requires HTTPS or localhost.");
     } else {
-      setCameraError("Unable to access camera. Please check browser settings.");
+      setCameraError("Unable to access camera. Please check permissions.");
     }
   }
 };

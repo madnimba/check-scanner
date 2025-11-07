@@ -3,6 +3,9 @@
 import type React from "react"
 
 import { useRef, useState } from "react"
+import { DepositSlipForm } from "./deposit-slip-form"
+import { AccountOpeningForm } from "./account-opening-form"
+import { LoanApplicationForm } from "./loan-application-form"
 import { Button } from "@/components/ui/button"
 import { Camera, Upload, X } from "lucide-react"
 
@@ -11,11 +14,12 @@ interface HomePageProps {
 }
 
 export function HomePage({ onStartScan }: HomePageProps) {
-  const uploadInputRef = useRef<HTMLInputElement>(null)
+  // removed upload input per request; forms are provided below
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isCameraOpen, setIsCameraOpen] = useState(false)
   const [cameraError, setCameraError] = useState<string | null>(null)
+  const [activeForm, setActiveForm] = useState<null | "deposit" | "account" | "loan">(null)
 
 const handleTakePhoto = async () => {
   try {
@@ -207,7 +211,7 @@ const handleTakePhoto = async () => {
       <div className="w-full max-w-md space-y-8 text-center">
         {/* Header */}
         <div className="space-y-3">
-          <h1 className="text-4xl font-bold text-foreground">CheckScan</h1>
+          <h1 className="text-4xl font-bold text-foreground">ScanSwift</h1>
           <p className="text-lg text-muted-foreground">Verify bank checks with AI-powered accuracy</p>
         </div>
 
@@ -222,22 +226,53 @@ const handleTakePhoto = async () => {
         <div className="space-y-3 pt-4">
           <Button size="lg" className="w-full h-14 text-lg font-semibold gap-2" onClick={handleTakePhoto}>
             <Camera className="w-5 h-5" />
-            Take Photo
+            Cheque
           </Button>
 
           <Button
             size="lg"
             variant="outline"
             className="w-full h-14 text-lg font-semibold gap-2 bg-transparent"
-            onClick={() => uploadInputRef.current?.click()}
+            onClick={() => setActiveForm("deposit")}
           >
-            <Upload className="w-5 h-5" />
-            Upload Image
+            Deposit Slip
+          </Button>
+
+          <Button
+            size="lg"
+            variant="outline"
+            className="w-full h-14 text-lg font-semibold gap-2 bg-transparent"
+            onClick={() => setActiveForm("account")}
+          >
+            Account Opening Form
+          </Button>
+
+          <Button
+            size="lg"
+            variant="outline"
+            className="w-full h-14 text-lg font-semibold gap-2 bg-transparent"
+            onClick={() => setActiveForm("loan")}
+          >
+            Loan Application Form
           </Button>
         </div>
 
-        {/* Hidden Inputs */}
-        <input ref={uploadInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+        {/* Form area: show the selected form */}
+        {activeForm === "deposit" && (
+          <div className="mt-4 w-full max-w-md">
+            <DepositSlipForm onClose={() => setActiveForm(null)} />
+          </div>
+        )}
+        {activeForm === "account" && (
+          <div className="mt-4 w-full max-w-md">
+            <AccountOpeningForm onClose={() => setActiveForm(null)} />
+          </div>
+        )}
+        {activeForm === "loan" && (
+          <div className="mt-4 w-full max-w-md">
+            <LoanApplicationForm onClose={() => setActiveForm(null)} />
+          </div>
+        )}
 
         {cameraError && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-600">

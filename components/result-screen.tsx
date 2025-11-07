@@ -126,7 +126,7 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
 
         
 
-        {/* Extracted Fields */}
+        {/* Extracted Fields (hardcoded for testing) */}
         <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-foreground">Extracted Fields</h2>
@@ -137,32 +137,69 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
           </div>
 
           <div className="space-y-3">
-            <FieldRow
-              label="Account Number"
-              value={result.fields.accountNumber}
-              //validation={fieldValidation.accountNumber}
-            />
-            <FieldRow
-              label="Account Holder"
-              value={result.fields.accountHolderName}
-              //validation={fieldValidation.accountHolderName}
-            />
-            <FieldRow label="Check Date" value={result.fields.checkDate} 
-              //validation={fieldValidation.checkDate} 
-            />
-            <FieldRow
-              label="Page Number"
-              value={result.fields.checkPageNumber}
-              //validation={fieldValidation.checkPageNumber}
-            />
-            <FieldRow label="Amount (Taka)" value={result.fields.amountTaka} 
-              //validation={fieldValidation.amountTaka} 
-            />
-            <FieldRow
-              label="Check Carrier"
-              value={result.fields.payeeName}
-              //validation={fieldValidation.checkCarrierName}
-            />
+            {/* Hardcoded editable fields as requested */}
+            <div className="py-2">
+              <label className="text-sm text-muted-foreground">Pay to</label>
+              <input
+                className="mt-1 w-full border border-gray-200 rounded px-3 py-2 text-foreground"
+                defaultValue="Rodushi Rahman"
+                aria-label="Pay to"
+              />
+            </div>
+
+            <div className="py-2">
+              <label className="text-sm text-muted-foreground">Date</label>
+              <div className="flex items-center gap-2">
+                <input
+                  className="mt-1 w-full border border-red-300 bg-red-50 rounded px-3 py-2 text-foreground"
+                  defaultValue="08/11/2024"
+                  aria-label="Check date"
+                />
+                <div className="text-red-600 text-sm font-semibold">⚠️</div>
+              </div>
+              <div className="text-red-600 text-sm mt-2">Date-Wrong Date! Doesn't Match with Today's Date</div>
+            </div>
+
+            <div className="py-2">
+              <label className="text-sm text-muted-foreground">Amount in Words</label>
+              <input
+                className="mt-1 w-full border border-gray-200 rounded px-3 py-2 text-foreground"
+                defaultValue="Fifty Thousand Taka Only"
+                aria-label="Amount in words"
+              />
+            </div>
+
+            <div className="py-2">
+              <label className="text-sm text-muted-foreground">Amount</label>
+              <input
+                className="mt-1 w-full border border-gray-200 rounded px-3 py-2 text-foreground"
+                defaultValue="50,00"
+                aria-label="Amount"
+              />
+            </div>
+
+            {/* Commenting out the rest of the original/auto-extracted fields for now
+            <div className="space-y-3">
+              <FieldRow
+                label="Account Number"
+                value={result.fields.accountNumber}
+              />
+              <FieldRow
+                label="Account Holder"
+                value={result.fields.accountHolderName}
+              />
+              <FieldRow label="Check Date" value={result.fields.checkDate} />
+              <FieldRow
+                label="Page Number"
+                value={result.fields.checkPageNumber}
+              />
+              <FieldRow label="Amount (Taka)" value={result.fields.amountTaka} />
+              <FieldRow
+                label="Check Carrier"
+                value={result.fields.payeeName}
+              />
+            </div>
+            */}
           </div>
         </Card>
 
@@ -190,7 +227,7 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
         fields={result.fields}
-        onSave={onEditFields}
+        onSave={(fields: any) => onEditFields(fields)}
       />
     </div>
   )

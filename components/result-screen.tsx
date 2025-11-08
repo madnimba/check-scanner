@@ -233,6 +233,18 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
           <Button size="lg" variant="ghost" className="w-full h-12" onClick={onBackToHome}>
             Try Again
           </Button>
+
+          <Button
+            size="lg"
+            className="w-full h-12 bg-blue-800 text-white hover:bg-blue-700"
+            onClick={() => {
+              const url = 'https://v0-scan-swift-ai-demo-website.vercel.app/'
+              const w = window.open(url, '_blank')
+              if (w) w.opener = null
+            }}
+          >
+            Dashboard
+          </Button>
         </div>
       </div>
 

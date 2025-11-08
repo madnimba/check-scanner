@@ -223,8 +223,8 @@ const handleTakePhoto = async () => {
           <div className="w-full max-w-xs mx-auto mb-3">
             <Button
               size="sm"
-              className="w-full bg-blue-600 text-white hover:bg-blue-700"
-              onClick={() => window.open('https://scanswift-arctic-wolves.onrender.com/', '_blank')}
+              className="w-1/2 bg-blue-600 text-white hover:bg-blue-700"
+              onClick={() => window.open('https://v0-scan-swift-ai-demo-website.vercel.app/', '_blank')}
             >
               Dashboard
             </Button>

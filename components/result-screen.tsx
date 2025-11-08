@@ -230,7 +230,7 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
 
           
 
-          <Button size="lg" variant="ghost" className="w-full h-12" onClick={onBackToHome}>
+          <Button size="lg" className="w-full h-12" onClick={onBackToHome}>
             Try Again
           </Button>
 

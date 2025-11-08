@@ -224,17 +224,14 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
         {/* Action Buttons */}
         <div className="space-y-3 pt-4">
           <Button size="lg" className="w-full h-12 gap-2" onClick={downloadJSON}>
-            <Download className="w-4 h-4" />
-            Download JSON
+            
+            Continue to Transaction
           </Button>
 
-          <Button size="lg" variant="outline" className="w-full h-12 gap-2 bg-transparent">
-            <Save className="w-4 h-4" />
-            Save to Vault
-          </Button>
+          
 
           <Button size="lg" variant="ghost" className="w-full h-12" onClick={onBackToHome}>
-            Scan Another Check
+            Try Again
           </Button>
         </div>
       </div>

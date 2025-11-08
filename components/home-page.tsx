@@ -219,9 +219,21 @@ const handleTakePhoto = async () => {
         </div>
 
         {/* Illustration Placeholder */}
-        <div className="flex justify-center">
-          <div className="w-48 h-48 bg-blue-100 rounded-3xl flex items-center justify-center border-4 border-blue-200">
-            <div className="text-6xl">📋</div>
+        <div className="flex flex-col items-center">
+          <div className="w-full max-w-xs mx-auto mb-3">
+            <Button
+              size="sm"
+              className="w-full bg-blue-600 text-white hover:bg-blue-700"
+              onClick={() => window.open('https://scanswift-arctic-wolves.onrender.com/', '_blank')}
+            >
+              Dashboard
+            </Button>
+          </div>
+
+          <div className="flex justify-center">
+            <div className="w-48 h-48 bg-blue-100 rounded-3xl flex items-center justify-center border-4 border-blue-200">
+              <div className="text-6xl">📋</div>
+            </div>
           </div>
         </div>
 

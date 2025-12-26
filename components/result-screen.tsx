@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { CheckCircle, AlertCircle, XCircle, Download, Save, Edit2, AlertTriangle } from "lucide-react"
+import { CheckCircle, AlertCircle, XCircle, Edit2, AlertTriangle, Loader2 } from "lucide-react"
 import { EditFieldsDialog } from "./edit-fields-dialog"
 import { validateAllFields } from "@/lib/field-validator"
 
@@ -36,6 +36,7 @@ interface ResultScreenProps {
 
 export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: ResultScreenProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [showTransactionLoader, setShowTransactionLoader] = useState(false)
 
   const fieldValidation = useMemo(() => validateAllFields(result.fields), [result.fields])
   const hasValidationErrors = Object.values(fieldValidation).some((v) => !v.isValid)
@@ -90,25 +91,20 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
     return "bg-red-500"
   }
 
-  const downloadJSON = () => {
-    const jsonData = JSON.stringify(
-      {
-        ...result,
-        validation: fieldValidation,
-        displayedScorePercent,
-        displayedVerdict,
-      },
-      null,
-      2,
-    )
-    const element = document.createElement("a")
-    element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(jsonData))
-    element.setAttribute("download", "check-scan-result.json")
-    element.style.display = "none"
-    document.body.appendChild(element)
-    element.click()
-    document.body.removeChild(element)
+  const handleContinueToTransaction = () => {
+    if (showTransactionLoader) return
+    setShowTransactionLoader(true)
   }
+
+  useEffect(() => {
+    if (!showTransactionLoader) return
+
+    const timeout = window.setTimeout(() => {
+      setShowTransactionLoader(false)
+    }, 2000)
+
+    return () => window.clearTimeout(timeout)
+  }, [showTransactionLoader])
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-background px-4 py-6">
@@ -223,9 +219,20 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
 
         {/* Action Buttons */}
         <div className="space-y-3 pt-4">
-          <Button size="lg" className="w-full h-12 gap-2" onClick={downloadJSON}>
-            
-            Continue to Transaction
+          <Button
+            size="lg"
+            className="w-full h-12 gap-2"
+            onClick={handleContinueToTransaction}
+            disabled={showTransactionLoader}
+          >
+            {showTransactionLoader ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Transaction Successful
+              </>
+            ) : (
+              <>Continue to Transaction</>
+            )}
           </Button>
 
           
@@ -254,6 +261,16 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
         fields={result.fields}
         onSave={(fields: any) => onEditFields(fields)}
       />
+      {showTransactionLoader && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-4">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-50">
+              <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
+            </div>
+            <p className="text-xl font-semibold text-green-700">Transaction Successful</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

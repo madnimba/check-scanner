@@ -168,7 +168,7 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
               <div className="flex items-center gap-2">
                 <input
                   className="mt-1 w-full border border-red-300 bg-red-50 rounded px-3 py-2 text-foreground"
-                  defaultValue="08/11/2024"
+                  defaultValue="25/12/2026"
                   aria-label="Check date"
                 />
                 <div className="text-red-600 text-sm font-semibold">⚠️</div>
@@ -230,7 +230,7 @@ export function ResultScreen({ result, imageUrl, onBackToHome, onEditFields }: R
 
           
 
-          <Button size="lg" className="w-full h-12" onClick={onBackToHome}>
+          <Button size="lg" variant="ghost" className="w-full h-12" onClick={onBackToHome}>
             Try Again
           </Button>
 

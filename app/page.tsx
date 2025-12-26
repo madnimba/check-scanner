@@ -98,7 +98,7 @@ export default function Home() {
               fields: {
                 accountNumber: "",
                 accountHolderName: "",
-                checkDate: "08/11/2024",
+                checkDate: "25/12/2026",
                 checkPageNumber: "1",
                 amountTaka: "50,00",
                 checkCarrierName: "",
